@@ -1,9 +1,5 @@
 package net.phunehehe.hdrcamera;
 
-/**
- * Created by phunehehe on 8/27/13.
- */
-
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.Log;

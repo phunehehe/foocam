@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -48,6 +47,8 @@ public class MainActivity extends Activity {
             } catch (IOException e) {
                 Log.d(TAG, "Error accessing file: " + e.getMessage());
             }
+
+            mCamera.startPreview();
         }
     };
 
@@ -62,13 +63,6 @@ public class MainActivity extends Activity {
             // Camera is not available (in use or does not exist)
         }
         return c; // returns null if camera is unavailable
-    }
-
-    /**
-     * Create a file Uri for saving an image or video
-     */
-    private static Uri getOutputMediaFileUri(int type) {
-        return Uri.fromFile(getOutputMediaFile(type));
     }
 
     /**
