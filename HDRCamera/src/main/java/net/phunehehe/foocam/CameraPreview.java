@@ -1,4 +1,4 @@
-package net.phunehehe.hdrcamera;
+package net.phunehehe.foocam;
 
 import android.content.Context;
 import android.hardware.Camera;
