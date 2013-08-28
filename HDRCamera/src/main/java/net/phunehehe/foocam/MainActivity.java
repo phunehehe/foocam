@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -133,11 +132,5 @@ public class MainActivity extends Activity implements PictureCallback {
 
         Button captureButton = (Button) findViewById(R.id.button_capture);
         captureButton.setOnClickListener(captureButtonListener);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
     }
 }
