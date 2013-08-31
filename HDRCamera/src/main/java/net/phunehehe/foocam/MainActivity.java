@@ -9,8 +9,11 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.Spinner;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,22 +28,32 @@ import java.util.Queue;
 public class MainActivity extends Activity implements PictureCallback {
 
     public static final String TAG = "HDR";
-    Button captureButton;
+    private Button captureButton;
     private Camera camera;
     private Camera.Parameters parameters;
     private Queue<Integer> exposureValues;
     private FrameLayout preview;
+    private String[] choices;
+    private Integer[][] evLevels;
+    private int evPosition;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             captureButton.setClickable(false);
-            parameters = camera.getParameters();
             parameters.setJpegQuality(100);
-            exposureValues = new LinkedList<Integer>(Arrays.asList(
-                    parameters.getMinExposureCompensation(),
-                    0,
-                    parameters.getMaxExposureCompensation()));
+            exposureValues = new LinkedList<Integer>(Arrays.asList(evLevels[evPosition]));
             processQueue();
+        }
+    };
+    private AdapterView.OnItemSelectedListener evSpinnerListener = new AdapterView.OnItemSelectedListener() {
+
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            evPosition = position;
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
         }
     };
 
@@ -115,6 +128,14 @@ public class MainActivity extends Activity implements PictureCallback {
         preview.removeAllViews();
     }
 
+    private Integer[] range(int start, int stop) {
+        Integer[] result = new Integer[stop - start];
+        for (int i = 0; i < stop - start; i++) {
+            result[i] = start + i;
+        }
+        return result;
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -124,7 +145,9 @@ public class MainActivity extends Activity implements PictureCallback {
     @Override
     protected void onResume() {
         super.onResume();
-        camera = Camera.open();
+        if (camera == null) {
+            camera = Camera.open();
+        }
         CameraPreview cameraPreview = new CameraPreview(this, camera);
         preview.addView(cameraPreview);
     }
@@ -132,11 +155,36 @@ public class MainActivity extends Activity implements PictureCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+
         preview = (FrameLayout) findViewById(R.id.camera_preview);
 
-        captureButton = (Button) findViewById(R.id.button_capture);
+        captureButton = (Button) findViewById(R.id.capture_button);
         captureButton.setOnClickListener(captureButtonListener);
+
+        camera = Camera.open();
+        parameters = camera.getParameters();
+        int min = parameters.getMinExposureCompensation();
+        int max = parameters.getMaxExposureCompensation();
+        float step = parameters.getExposureCompensationStep();
+        evLevels = new Integer[][]{
+                range(min, 0),
+                range(0, max),
+                {min, 0, max},
+                range(min, max)
+        };
+        choices = new String[]{
+                "Dark: " + min * step + " - " + 0,
+                "Light: " + " - " + max * step,
+                "Quick: " + min * step + " - " + max * step,
+                "Full: " + min * step + " - " + max * step
+        };
+
+        Spinner spinner = (Spinner) findViewById(R.id.ev_spinner);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, choices);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(evSpinnerListener);
     }
 }
