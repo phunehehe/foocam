@@ -25,6 +25,7 @@ import java.util.Queue;
 public class MainActivity extends Activity implements PictureCallback {
 
     public static final String TAG = "HDR";
+    Button captureButton;
     private Camera camera;
     private Camera.Parameters parameters;
     private Queue<Integer> exposureValues;
@@ -32,7 +33,9 @@ public class MainActivity extends Activity implements PictureCallback {
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+            captureButton.setClickable(false);
             parameters = camera.getParameters();
+            parameters.setJpegQuality(100);
             exposureValues = new LinkedList<Integer>(Arrays.asList(
                     parameters.getMinExposureCompensation(),
                     0,
@@ -74,6 +77,7 @@ public class MainActivity extends Activity implements PictureCallback {
         if (exposureValue == null) {
             return false;
         }
+        captureButton.setText("" + exposureValue);
         parameters.setExposureCompensation(exposureValue);
         camera.setParameters(parameters);
         camera.takePicture(null, null, MainActivity.this);
@@ -98,6 +102,8 @@ public class MainActivity extends Activity implements PictureCallback {
         if (!processQueue()) {
             sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED,
                     Uri.fromFile(getMediaStorageDir())));
+            captureButton.setText(R.string.capture);
+            captureButton.setClickable(true);
         }
     }
 
@@ -130,7 +136,7 @@ public class MainActivity extends Activity implements PictureCallback {
         setContentView(R.layout.activity_main);
         preview = (FrameLayout) findViewById(R.id.camera_preview);
 
-        Button captureButton = (Button) findViewById(R.id.button_capture);
+        captureButton = (Button) findViewById(R.id.button_capture);
         captureButton.setOnClickListener(captureButtonListener);
     }
 }
