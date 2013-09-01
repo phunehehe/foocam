@@ -20,9 +20,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Deque;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 public class MainActivity extends Activity implements PictureCallback {
@@ -33,15 +35,15 @@ public class MainActivity extends Activity implements PictureCallback {
     private Camera.Parameters parameters;
     private Queue<Integer> exposureValues;
     private FrameLayout preview;
-    private String[] choices;
-    private Integer[][] evLevels;
+    private List<String> choices;
+    private List<List<Integer>> evLevels;
     private int evPosition;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             captureButton.setClickable(false);
             parameters.setJpegQuality(100);
-            exposureValues = new LinkedList<Integer>(Arrays.asList(evLevels[evPosition]));
+            exposureValues = (Queue) evLevels.get(evPosition);
             processQueue();
         }
     };
@@ -128,14 +130,6 @@ public class MainActivity extends Activity implements PictureCallback {
         preview.removeAllViews();
     }
 
-    private Integer[] range(int start, int stop) {
-        Integer[] result = new Integer[stop - start];
-        for (int i = 0; i < stop - start; i++) {
-            result[i] = start + i;
-        }
-        return result;
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -152,6 +146,49 @@ public class MainActivity extends Activity implements PictureCallback {
         preview.addView(cameraPreview);
     }
 
+    private void calculateCameraParameters() {
+
+        int min = parameters.getMinExposureCompensation();
+        int max = parameters.getMaxExposureCompensation();
+        int mid = (max + min) / 2;
+        int maxSteps = max - mid;
+        float stepValue = parameters.getExposureCompensationStep();
+
+        evLevels = new ArrayList<List<Integer>>(maxSteps);
+        choices = new ArrayList<String>(maxSteps);
+
+        int step;
+        int offset;
+        int lowValue;
+        int highValue;
+        Deque<Integer> exposureIndexes;
+        StringBuilder description;
+
+        for (step = maxSteps; step >= 1; step--) {
+
+            exposureIndexes = new LinkedList<Integer>();
+            description = new StringBuilder();
+            exposureIndexes.add(mid);
+            description.append(mid);
+
+            for (offset = step; offset <= maxSteps; offset += step) {
+
+                lowValue = mid - offset;
+                exposureIndexes.addFirst(lowValue);
+                description.insert(0, ", ");
+                description.insert(0, lowValue * stepValue);
+
+                highValue = mid + offset;
+                exposureIndexes.addLast(highValue);
+                description.append(", ");
+                description.append(highValue * stepValue);
+            }
+
+            evLevels.add((List) exposureIndexes);
+            choices.add(description.insert(0, "EVs: ").toString());
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -164,21 +201,7 @@ public class MainActivity extends Activity implements PictureCallback {
 
         camera = Camera.open();
         parameters = camera.getParameters();
-        int min = parameters.getMinExposureCompensation();
-        int max = parameters.getMaxExposureCompensation();
-        float step = parameters.getExposureCompensationStep();
-        evLevels = new Integer[][]{
-                range(min, 0),
-                range(0, max),
-                {min, 0, max},
-                range(min, max)
-        };
-        choices = new String[]{
-                "Dark: " + min * step + " - " + 0,
-                "Light: " + " - " + max * step,
-                "Quick: " + min * step + " - " + max * step,
-                "Full: " + min * step + " - " + max * step
-        };
+        calculateCameraParameters();
 
         Spinner spinner = (Spinner) findViewById(R.id.ev_spinner);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
