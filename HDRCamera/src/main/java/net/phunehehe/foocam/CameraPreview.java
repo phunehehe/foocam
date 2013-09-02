@@ -2,9 +2,9 @@ package net.phunehehe.foocam;
 
 import android.content.Context;
 import android.hardware.Camera;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -49,7 +49,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             camera.setPreviewDisplay(surfaceHolder);
             camera.startPreview();
         } catch (IOException e) {
-            Log.d(MainActivity.TAG, "Error starting camera preview: " + e.getMessage());
+            Context context = getContext();
+            Toast.makeText(context, context.getString(R.string.something_is_wrong),
+                    Toast.LENGTH_SHORT).show();
         }
     }
 }

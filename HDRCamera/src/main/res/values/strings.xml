@@ -3,6 +3,7 @@
     <string name="app_name">fooCam</string>
     <string name="capture">Go!</string>
     <string name="media_not_mounted">External storage is not available.</string>
-    <string name="cannot_create_dir">Cannot create directory %s</string>
+    <string name="something_is_wrong">Something is wrong...</string>
+    <string name="cannot_create_dir">Could not create directory %s.</string>
     <string name="capturing">Capturing %s</string>
 </resources>

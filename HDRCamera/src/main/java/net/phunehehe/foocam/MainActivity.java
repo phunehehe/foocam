@@ -24,26 +24,24 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 public class MainActivity extends Activity implements PictureCallback {
 
-    private Button captureButton;
-    private FrameLayout preview;
     private Camera camera;
     private Camera.Parameters parameters;
+    private int totalStops;
+    private int midExposureValue;
+    private List<Integer> numberOfStopsList;
     private List<Camera.Size> resolutions;
     private List<String> resolutionDescriptions;
-    private Queue<Integer> exposureValues;
-    private List<String> evDescriptions;
-    private List<List<Integer>> evLevels;
-    private int evPosition;
+    private Deque<Integer> exposureValues;
+    private Button captureButton;
+    private FrameLayout preview;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
 
         @Override
         public void onClick(View v) {
             captureButton.setClickable(false);
-            exposureValues = new LinkedList<Integer>(evLevels.get(evPosition));
             processQueue();
         }
     };
@@ -59,11 +57,20 @@ public class MainActivity extends Activity implements PictureCallback {
         public void onNothingSelected(AdapterView<?> parent) {
         }
     };
-    private AdapterView.OnItemSelectedListener evSpinnerListener = new AdapterView.OnItemSelectedListener() {
+    private AdapterView.OnItemSelectedListener numberOfStopsListener = new AdapterView.OnItemSelectedListener() {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            evPosition = position;
+            int numberOfStops = numberOfStopsList.get(position);
+            // Minus one for the 0
+            int stepsBetweenStops = (totalStops - 1) / (numberOfStops - 1);
+            exposureValues = new LinkedList<Integer>();
+            exposureValues.addLast(midExposureValue);
+            for (int offset = stepsBetweenStops; exposureValues.size() < numberOfStops;
+                 offset += stepsBetweenStops) {
+                exposureValues.addFirst(midExposureValue - offset);
+                exposureValues.addLast((midExposureValue + offset));
+            }
         }
 
         @Override
@@ -100,7 +107,7 @@ public class MainActivity extends Activity implements PictureCallback {
     }
 
     private boolean processQueue() {
-        Integer exposureValue = exposureValues.poll();
+        Integer exposureValue = exposureValues.pollFirst();
         if (exposureValue == null) {
             return false;
         }
@@ -163,44 +170,16 @@ public class MainActivity extends Activity implements PictureCallback {
             resolutionDescriptions.add(size.width + " x " + size.height);
         }
 
-        int min = parameters.getMinExposureCompensation();
-        int max = parameters.getMaxExposureCompensation();
-        int mid = (max + min) / 2;
-        int maxSteps = max - mid;
-        float stepValue = parameters.getExposureCompensationStep();
-
-        evLevels = new ArrayList<List<Integer>>(maxSteps);
-        evDescriptions = new ArrayList<String>(maxSteps);
-
-        int step;
-        int offset;
-        int lowValue;
-        int highValue;
-        Deque<Integer> exposureIndexes;
-        StringBuilder description;
-
-        for (step = maxSteps; step >= 1; step--) {
-
-            exposureIndexes = new LinkedList<Integer>();
-            description = new StringBuilder();
-            exposureIndexes.add(mid);
-            description.append(mid);
-
-            for (offset = step; offset <= maxSteps; offset += step) {
-
-                lowValue = mid - offset;
-                exposureIndexes.addFirst(lowValue);
-                description.insert(0, ", ");
-                description.insert(0, lowValue * stepValue);
-
-                highValue = mid + offset;
-                exposureIndexes.addLast(highValue);
-                description.append(", ");
-                description.append(highValue * stepValue);
+        numberOfStopsList = new LinkedList<Integer>();
+        int minStop = parameters.getMinExposureCompensation();
+        int maxStop = parameters.getMaxExposureCompensation();
+        midExposureValue = (maxStop + minStop) / 2;
+        // Plus one for 0
+        totalStops = maxStop - minStop + 1;
+        if (totalStops >= 2) {
+            for (int stops = 2; stops <= totalStops; stops++) {
+                numberOfStopsList.add(stops);
             }
-
-            evLevels.add((List<Integer>) exposureIndexes);
-            evDescriptions.add(description.insert(0, "EVs: ").toString());
         }
     }
 
@@ -218,17 +197,17 @@ public class MainActivity extends Activity implements PictureCallback {
         parameters = camera.getParameters();
         calculateCameraParameters();
 
-        Spinner evSpinner = (Spinner) findViewById(R.id.ev_spinner);
-        ArrayAdapter<String> evAdapter = new ArrayAdapter<String>(
-                this, android.R.layout.simple_spinner_item, evDescriptions);
-        evAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        evSpinner.setAdapter(evAdapter);
-        evSpinner.setOnItemSelectedListener(evSpinnerListener);
+        Spinner numberOfStopsSpinner = (Spinner) findViewById(R.id.number_of_stops_spinner);
+        ArrayAdapter<Integer> numberOfStopsAdapter = new ArrayAdapter<Integer>(
+                this, android.R.layout.simple_spinner_item, numberOfStopsList);
+        numberOfStopsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        numberOfStopsSpinner.setAdapter(numberOfStopsAdapter);
+        numberOfStopsSpinner.setOnItemSelectedListener(numberOfStopsListener);
 
         Spinner resolutionSpinner = (Spinner) findViewById(R.id.resolution_spinner);
         ArrayAdapter<String> resolutionAdapter = new ArrayAdapter<String>(
                 this, android.R.layout.simple_spinner_item, resolutionDescriptions);
-        evAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        resolutionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         resolutionSpinner.setAdapter(resolutionAdapter);
         resolutionSpinner.setOnItemSelectedListener(resolutionSpinnerListener);
     }
