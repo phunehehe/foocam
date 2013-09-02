@@ -10,6 +10,13 @@
         android:layout_height="fill_parent" />
 
     <Spinner
+        android:id="@+id/resolution_spinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true" />
+
+    <Spinner
         android:id="@+id/ev_spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

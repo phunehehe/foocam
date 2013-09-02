@@ -28,13 +28,14 @@ import java.util.Queue;
 
 public class MainActivity extends Activity implements PictureCallback {
 
-    public static final String TAG = "HDR";
     private Button captureButton;
+    private FrameLayout preview;
     private Camera camera;
     private Camera.Parameters parameters;
+    private List<Camera.Size> resolutions;
+    private List<String> resolutionDescriptions;
     private Queue<Integer> exposureValues;
-    private FrameLayout preview;
-    private List<String> choices;
+    private List<String> evDescriptions;
     private List<List<Integer>> evLevels;
     private int evPosition;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
@@ -42,9 +43,20 @@ public class MainActivity extends Activity implements PictureCallback {
         @Override
         public void onClick(View v) {
             captureButton.setClickable(false);
-            parameters.setJpegQuality(100);
-            exposureValues = (Queue) evLevels.get(evPosition);
+            exposureValues = new LinkedList<Integer>(evLevels.get(evPosition));
             processQueue();
+        }
+    };
+    private AdapterView.OnItemSelectedListener resolutionSpinnerListener = new AdapterView.OnItemSelectedListener() {
+
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            Camera.Size resolution = resolutions.get(position);
+            parameters.setPictureSize(resolution.width, resolution.height);
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
         }
     };
     private AdapterView.OnItemSelectedListener evSpinnerListener = new AdapterView.OnItemSelectedListener() {
@@ -143,6 +155,14 @@ public class MainActivity extends Activity implements PictureCallback {
 
     private void calculateCameraParameters() {
 
+        parameters.setJpegQuality(100);
+
+        resolutions = parameters.getSupportedPictureSizes();
+        resolutionDescriptions = new ArrayList<String>(resolutions.size());
+        for (Camera.Size size : resolutions) {
+            resolutionDescriptions.add(size.width + " x " + size.height);
+        }
+
         int min = parameters.getMinExposureCompensation();
         int max = parameters.getMaxExposureCompensation();
         int mid = (max + min) / 2;
@@ -150,7 +170,7 @@ public class MainActivity extends Activity implements PictureCallback {
         float stepValue = parameters.getExposureCompensationStep();
 
         evLevels = new ArrayList<List<Integer>>(maxSteps);
-        choices = new ArrayList<String>(maxSteps);
+        evDescriptions = new ArrayList<String>(maxSteps);
 
         int step;
         int offset;
@@ -179,8 +199,8 @@ public class MainActivity extends Activity implements PictureCallback {
                 description.append(highValue * stepValue);
             }
 
-            evLevels.add((List) exposureIndexes);
-            choices.add(description.insert(0, "EVs: ").toString());
+            evLevels.add((List<Integer>) exposureIndexes);
+            evDescriptions.add(description.insert(0, "EVs: ").toString());
         }
     }
 
@@ -198,11 +218,18 @@ public class MainActivity extends Activity implements PictureCallback {
         parameters = camera.getParameters();
         calculateCameraParameters();
 
-        Spinner spinner = (Spinner) findViewById(R.id.ev_spinner);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_spinner_item, choices);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(evSpinnerListener);
+        Spinner evSpinner = (Spinner) findViewById(R.id.ev_spinner);
+        ArrayAdapter<String> evAdapter = new ArrayAdapter<String>(
+                this, android.R.layout.simple_spinner_item, evDescriptions);
+        evAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        evSpinner.setAdapter(evAdapter);
+        evSpinner.setOnItemSelectedListener(evSpinnerListener);
+
+        Spinner resolutionSpinner = (Spinner) findViewById(R.id.resolution_spinner);
+        ArrayAdapter<String> resolutionAdapter = new ArrayAdapter<String>(
+                this, android.R.layout.simple_spinner_item, resolutionDescriptions);
+        evAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        resolutionSpinner.setAdapter(resolutionAdapter);
+        resolutionSpinner.setOnItemSelectedListener(resolutionSpinnerListener);
     }
 }
