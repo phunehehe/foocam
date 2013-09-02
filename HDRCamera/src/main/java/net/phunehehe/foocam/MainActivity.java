@@ -7,16 +7,15 @@ import android.hardware.Camera.PictureCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -39,6 +38,7 @@ public class MainActivity extends Activity implements PictureCallback {
     private List<List<Integer>> evLevels;
     private int evPosition;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
+
         @Override
         public void onClick(View v) {
             captureButton.setClickable(false);
@@ -62,18 +62,19 @@ public class MainActivity extends Activity implements PictureCallback {
     /**
      * Create a File for saving an image
      */
-    private static File getOutputMediaFile() {
+    private File getOutputMediaFile() throws IOException {
 
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-            throw new RuntimeException("External storage not available");
+            throw new IOException(getString(R.string.media_not_mounted));
         }
 
-        File mediaStorageDir = getMediaStorageDir();
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES), getString(R.string.app_name));
 
         // Create the storage directory if it does not exist
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
-                throw new RuntimeException("Failed to create directory: " + mediaStorageDir);
+                throw new IOException(format(R.string.cannot_create_dir, mediaStorageDir));
             }
         }
 
@@ -82,9 +83,8 @@ public class MainActivity extends Activity implements PictureCallback {
         return new File(mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
     }
 
-    private static File getMediaStorageDir() {
-        return new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "MyCameraApp");
+    private String format(int resId, Object... args) {
+        return String.format(getString(resId), args);
     }
 
     private boolean processQueue() {
@@ -92,7 +92,7 @@ public class MainActivity extends Activity implements PictureCallback {
         if (exposureValue == null) {
             return false;
         }
-        captureButton.setText("" + exposureValue);
+        captureButton.setText(format(R.string.capturing, exposureValue));
         parameters.setExposureCompensation(exposureValue);
         camera.setParameters(parameters);
         camera.takePicture(null, null, MainActivity.this);
@@ -106,17 +106,12 @@ public class MainActivity extends Activity implements PictureCallback {
             FileOutputStream fos = new FileOutputStream(pictureFile);
             fos.write(data);
             fos.close();
-        } catch (FileNotFoundException e) {
-            Log.d(TAG, "File not found: " + e.getMessage());
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.fromFile(pictureFile)));
         } catch (IOException e) {
-            Log.d(TAG, "Error accessing file: " + e.getMessage());
-        } catch (RuntimeException e) {
-            Log.d(TAG, "Error creating media file: " + e.getMessage());
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         MainActivity.this.camera.startPreview();
         if (!processQueue()) {
-            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED,
-                    Uri.fromFile(getMediaStorageDir())));
             captureButton.setText(R.string.capture);
             captureButton.setClickable(true);
         }
