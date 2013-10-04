@@ -27,23 +27,26 @@ import java.util.List;
 
 public class MainActivity extends Activity implements PictureCallback {
 
+    private Button captureButton;
     private Camera camera;
     private Camera.Parameters parameters;
+    private Deque<Integer> exposureLevels;
+    private FrameLayout preview;
+    private float exposureCompensationStep;
+    private float currentEv;
     private int numberOfStops;
     private int totalStops;
     private int midExposureLevel;
-    private float exposureCompensationStep;
     private List<Integer> numberOfStopsList;
     private List<Camera.Size> resolutions;
     private List<String> resolutionDescriptions;
-    private Deque<Integer> exposureLevels;
-    private Button captureButton;
-    private FrameLayout preview;
+    private String timestamp;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
 
         @Override
         public void onClick(View v) {
             captureButton.setClickable(false);
+            timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_").format(new Date());
             calculateExposureLevels(numberOfStops);
             processQueue();
         }
@@ -87,7 +90,7 @@ public class MainActivity extends Activity implements PictureCallback {
     /**
      * Create a File for saving an image
      */
-    private File getOutputMediaFile() throws IOException {
+    private File getOutputMediaFile(float ev) throws IOException {
 
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             throw new IOException(getString(R.string.media_not_mounted));
@@ -104,8 +107,7 @@ public class MainActivity extends Activity implements PictureCallback {
         }
 
         // Create a media file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        return new File(mediaStorageDir.getPath() + File.separator + "IMG_" + timeStamp + ".jpg");
+        return new File(String.format("%s%s%s%.1f.jpg", mediaStorageDir.getPath(), File.separator, timestamp, ev));
     }
 
     private String format(int resId, Object... args) {
@@ -113,13 +115,13 @@ public class MainActivity extends Activity implements PictureCallback {
     }
 
     private boolean processQueue() {
-        Integer exposureCompensation = exposureLevels.pollFirst();
-        if (exposureCompensation == null) {
+        Integer exposureLevel = exposureLevels.pollFirst();
+        if (exposureLevel == null) {
             return false;
         }
-        float currentEv = exposureCompensation * exposureCompensationStep;
+        currentEv = exposureLevel * exposureCompensationStep;
         captureButton.setText(format(R.string.capturing, currentEv));
-        parameters.setExposureCompensation(exposureCompensation);
+        parameters.setExposureCompensation(exposureLevel);
         camera.setParameters(parameters);
         camera.takePicture(null, null, MainActivity.this);
         return true;
@@ -128,7 +130,7 @@ public class MainActivity extends Activity implements PictureCallback {
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
         try {
-            File pictureFile = getOutputMediaFile();
+            File pictureFile = getOutputMediaFile(currentEv);
             FileOutputStream fos = new FileOutputStream(pictureFile);
             fos.write(data);
             fos.close();
