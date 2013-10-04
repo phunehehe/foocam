@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,14 +29,14 @@ public class MainActivity extends Activity implements PictureCallback {
 
     private Camera camera;
     private Camera.Parameters parameters;
+    private int numberOfStops;
     private int totalStops;
-    private int midExposureValue;
+    private int midExposureLevel;
     private float exposureCompensationStep;
-    private float currentEv;
     private List<Integer> numberOfStopsList;
     private List<Camera.Size> resolutions;
     private List<String> resolutionDescriptions;
-    private Deque<Integer> exposureCompensationLevels;
+    private Deque<Integer> exposureLevels;
     private Button captureButton;
     private FrameLayout preview;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
@@ -45,6 +44,7 @@ public class MainActivity extends Activity implements PictureCallback {
         @Override
         public void onClick(View v) {
             captureButton.setClickable(false);
+            calculateExposureLevels(numberOfStops);
             processQueue();
         }
     };
@@ -64,23 +64,25 @@ public class MainActivity extends Activity implements PictureCallback {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            int numberOfStops = numberOfStopsList.get(position);
-            // Minus one for the 0
-            int stepsBetweenStops = (totalStops - 1) / (numberOfStops - 1);
-            exposureCompensationLevels = new LinkedList<Integer>();
-            exposureCompensationLevels.addLast(midExposureValue);
-            for (int offset = stepsBetweenStops; exposureCompensationLevels.size() < numberOfStops;
-                 offset += stepsBetweenStops) {
-                // FIXME: This breaks even numberOfStops
-                exposureCompensationLevels.addFirst(midExposureValue - offset);
-                exposureCompensationLevels.addLast((midExposureValue + offset));
-            }
+            numberOfStops = numberOfStopsList.get(position);
         }
 
         @Override
         public void onNothingSelected(AdapterView<?> parent) {
         }
     };
+
+    private void calculateExposureLevels(int stops) {
+        // Minus one for the 0
+        int step = (totalStops - 1) / (stops - 1);
+        exposureLevels = new LinkedList<Integer>();
+        exposureLevels.addLast(midExposureLevel);
+        for (int offset = step; exposureLevels.size() < stops; offset += step) {
+            // FIXME: This breaks even numberOfStops
+            exposureLevels.addFirst(midExposureLevel - offset);
+            exposureLevels.addLast((midExposureLevel + offset));
+        }
+    }
 
     /**
      * Create a File for saving an image
@@ -111,11 +113,11 @@ public class MainActivity extends Activity implements PictureCallback {
     }
 
     private boolean processQueue() {
-        Integer exposureCompensation = exposureCompensationLevels.pollFirst();
+        Integer exposureCompensation = exposureLevels.pollFirst();
         if (exposureCompensation == null) {
             return false;
         }
-        currentEv = exposureCompensation * exposureCompensationStep;
+        float currentEv = exposureCompensation * exposureCompensationStep;
         captureButton.setText(format(R.string.capturing, currentEv));
         parameters.setExposureCompensation(exposureCompensation);
         camera.setParameters(parameters);
@@ -188,11 +190,11 @@ public class MainActivity extends Activity implements PictureCallback {
         numberOfStopsList = new LinkedList<Integer>();
         int minStop = parameters.getMinExposureCompensation();
         int maxStop = parameters.getMaxExposureCompensation();
-        midExposureValue = (maxStop + minStop) / 2;
+        midExposureLevel = (maxStop + minStop) / 2;
         // Plus one for 0
         totalStops = maxStop - minStop + 1;
-        if (totalStops >= 2) {
-            for (int stops = 2; stops <= totalStops; stops++) {
+        if (totalStops >= 3) {
+            for (int stops = 3; stops <= totalStops; stops += 2) {
                 numberOfStopsList.add(stops);
             }
         }
