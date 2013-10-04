@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -31,10 +32,12 @@ public class MainActivity extends Activity implements PictureCallback {
     private Camera.Parameters parameters;
     private int totalStops;
     private int midExposureValue;
+    private float exposureCompensationStep;
+    private float currentEv;
     private List<Integer> numberOfStopsList;
     private List<Camera.Size> resolutions;
     private List<String> resolutionDescriptions;
-    private Deque<Integer> exposureValues;
+    private Deque<Integer> exposureCompensationLevels;
     private Button captureButton;
     private FrameLayout preview;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
@@ -64,12 +67,13 @@ public class MainActivity extends Activity implements PictureCallback {
             int numberOfStops = numberOfStopsList.get(position);
             // Minus one for the 0
             int stepsBetweenStops = (totalStops - 1) / (numberOfStops - 1);
-            exposureValues = new LinkedList<Integer>();
-            exposureValues.addLast(midExposureValue);
-            for (int offset = stepsBetweenStops; exposureValues.size() < numberOfStops;
+            exposureCompensationLevels = new LinkedList<Integer>();
+            exposureCompensationLevels.addLast(midExposureValue);
+            for (int offset = stepsBetweenStops; exposureCompensationLevels.size() < numberOfStops;
                  offset += stepsBetweenStops) {
-                exposureValues.addFirst(midExposureValue - offset);
-                exposureValues.addLast((midExposureValue + offset));
+                // FIXME: This breaks even numberOfStops
+                exposureCompensationLevels.addFirst(midExposureValue - offset);
+                exposureCompensationLevels.addLast((midExposureValue + offset));
             }
         }
 
@@ -107,12 +111,13 @@ public class MainActivity extends Activity implements PictureCallback {
     }
 
     private boolean processQueue() {
-        Integer exposureValue = exposureValues.pollFirst();
-        if (exposureValue == null) {
+        Integer exposureCompensation = exposureCompensationLevels.pollFirst();
+        if (exposureCompensation == null) {
             return false;
         }
-        captureButton.setText(format(R.string.capturing, exposureValue));
-        parameters.setExposureCompensation(exposureValue);
+        currentEv = exposureCompensation * exposureCompensationStep;
+        captureButton.setText(format(R.string.capturing, currentEv));
+        parameters.setExposureCompensation(exposureCompensation);
         camera.setParameters(parameters);
         camera.takePicture(null, null, MainActivity.this);
         return true;
@@ -126,6 +131,15 @@ public class MainActivity extends Activity implements PictureCallback {
             fos.write(data);
             fos.close();
             sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.fromFile(pictureFile)));
+            // FIXME: Somehow this breaks EV detection in Luminance HDR
+            //ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
+            //String apertureString = exif.getAttribute(ExifInterface.TAG_APERTURE);
+            //float aperture = Float.parseFloat(apertureString);
+            //double exposureTime = Math.pow(aperture, 2) / Math.pow(2, currentEv);
+            //exif.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, String.valueOf(exposureTime));
+            //double shutterSpeedValue = Math.log(1 / exposureTime) / Math.log(2);
+            //exif.setAttribute("ShutterSpeedValue", String.valueOf(shutterSpeedValue));
+            //exif.saveAttributes();
         } catch (IOException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -163,6 +177,7 @@ public class MainActivity extends Activity implements PictureCallback {
     private void calculateCameraParameters() {
 
         parameters.setJpegQuality(100);
+        exposureCompensationStep = parameters.getExposureCompensationStep();
 
         resolutions = parameters.getSupportedPictureSizes();
         resolutionDescriptions = new ArrayList<String>(resolutions.size());
