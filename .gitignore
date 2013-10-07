@@ -1,4 +1,5 @@
 /.gradle
-/.idea
+/.idea/tasks.xml
+/.idea/workspace.xml
 /fooCam/build
 /local.properties
