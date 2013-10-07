@@ -81,7 +81,6 @@ public class MainActivity extends Activity implements PictureCallback {
         exposureLevels = new LinkedList<Integer>();
         exposureLevels.addLast(midExposureLevel);
         for (int offset = step; exposureLevels.size() < stops; offset += step) {
-            // FIXME: This breaks even numberOfStops
             exposureLevels.addFirst(midExposureLevel - offset);
             exposureLevels.addLast((midExposureLevel + offset));
         }
@@ -135,15 +134,6 @@ public class MainActivity extends Activity implements PictureCallback {
             fos.write(data);
             fos.close();
             sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.fromFile(pictureFile)));
-            // FIXME: Somehow this breaks EV detection in Luminance HDR
-            //ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
-            //String apertureString = exif.getAttribute(ExifInterface.TAG_APERTURE);
-            //float aperture = Float.parseFloat(apertureString);
-            //double exposureTime = Math.pow(aperture, 2) / Math.pow(2, currentEv);
-            //exif.setAttribute(ExifInterface.TAG_EXPOSURE_TIME, String.valueOf(exposureTime));
-            //double shutterSpeedValue = Math.log(1 / exposureTime) / Math.log(2);
-            //exif.setAttribute("ShutterSpeedValue", String.valueOf(shutterSpeedValue));
-            //exif.saveAttributes();
         } catch (IOException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -184,6 +174,7 @@ public class MainActivity extends Activity implements PictureCallback {
         exposureCompensationStep = parameters.getExposureCompensationStep();
 
         resolutions = parameters.getSupportedPictureSizes();
+        // getSupportedPictureSizes will always return a list with at least one element.
         resolutionDescriptions = new ArrayList<String>(resolutions.size());
         for (Camera.Size size : resolutions) {
             resolutionDescriptions.add(size.width + " x " + size.height);
@@ -212,6 +203,7 @@ public class MainActivity extends Activity implements PictureCallback {
         captureButton = (Button) findViewById(R.id.capture_button);
         captureButton.setOnClickListener(captureButtonListener);
 
+        // FIXME: This returns null if the device has no back-facing camera.
         camera = Camera.open();
         parameters = camera.getParameters();
         calculateCameraParameters();
