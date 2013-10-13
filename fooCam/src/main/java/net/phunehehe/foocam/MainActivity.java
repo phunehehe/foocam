@@ -98,7 +98,7 @@ public class MainActivity extends Activity implements PictureCallback {
         }
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), getString(R.string.app_name));
+                Environment.DIRECTORY_DCIM), getString(R.string.app_name));
 
         // Create the storage directory if it does not exist
         if (!mediaStorageDir.exists()) {
