@@ -207,8 +207,9 @@ public class MainActivity extends Activity implements PictureCallback {
         captureButton = (Button) findViewById(R.id.capture_button);
         captureButton.setOnClickListener(captureButtonListener);
 
-        // FIXME: This returns null if the device has no back-facing camera.
-        camera = Camera.open();
+        // TODO: This gets the first camera, not necessarily the best.
+        // Maybe the app should let the user choose the camera.
+        camera = Camera.open(0);
         parameters = camera.getParameters();
         calculateCameraParameters();
 
