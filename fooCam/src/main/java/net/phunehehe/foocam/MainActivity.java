@@ -7,6 +7,7 @@ import android.hardware.Camera.PictureCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.Display;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -164,7 +165,7 @@ public class MainActivity extends Activity implements PictureCallback {
     protected void onResume() {
         super.onResume();
         if (camera == null) {
-            camera = Camera.open();
+            initializeCamera();
         }
         CameraPreview cameraPreview = new CameraPreview(this, camera);
         preview.addView(cameraPreview);
@@ -173,7 +174,19 @@ public class MainActivity extends Activity implements PictureCallback {
     private void calculateCameraParameters() {
 
         parameters.setJpegQuality(100);
+        parameters.setJpegThumbnailSize(0, 0);
+
         exposureCompensationStep = parameters.getExposureCompensationStep();
+
+        Display display = getWindowManager().getDefaultDisplay();
+        float targetAspectRatio = (float) display.getWidth() / display.getHeight();
+        for (Camera.Size size : parameters.getSupportedPreviewSizes()) {
+            float aspectRatio = (float) size.width / size.height;
+            if (Math.abs(aspectRatio - targetAspectRatio) < 0.1) {
+                parameters.setPreviewSize(size.width, size.height);
+                break;
+            }
+        }
 
         resolutions = parameters.getSupportedPictureSizes();
         // getSupportedPictureSizes will always return a list with at least one element.
@@ -193,6 +206,15 @@ public class MainActivity extends Activity implements PictureCallback {
                 numberOfStopsList.add(stops);
             }
         }
+
+        camera.setParameters(parameters);
+    }
+
+    private void initializeCamera() {
+        // TODO: This gets the first camera, not necessarily the best.
+        // Maybe the app should let the user choose the camera.
+        camera = Camera.open(0);
+        parameters = camera.getParameters();
     }
 
     @Override
@@ -201,16 +223,12 @@ public class MainActivity extends Activity implements PictureCallback {
         Crittercism.initialize(getApplicationContext(), "52556e00e432f52ff3000005");
 
         setContentView(R.layout.activity_main);
-
         preview = (FrameLayout) findViewById(R.id.camera_preview);
 
         captureButton = (Button) findViewById(R.id.capture_button);
         captureButton.setOnClickListener(captureButtonListener);
 
-        // TODO: This gets the first camera, not necessarily the best.
-        // Maybe the app should let the user choose the camera.
-        camera = Camera.open(0);
-        parameters = camera.getParameters();
+        initializeCamera();
         calculateCameraParameters();
 
         Spinner numberOfStopsSpinner = (Spinner) findViewById(R.id.number_of_stops_spinner);
