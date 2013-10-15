@@ -32,7 +32,6 @@ public class MainActivity extends Activity implements PictureCallback {
 
     private Button captureButton;
     private Camera camera;
-    private Camera.Parameters parameters;
     private Deque<Integer> exposureLevels;
     private FrameLayout preview;
     private float exposureCompensationStep;
@@ -67,7 +66,9 @@ public class MainActivity extends Activity implements PictureCallback {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             Camera.Size resolution = resolutions.get(position);
+            Camera.Parameters parameters = camera.getParameters();
             parameters.setPictureSize(resolution.width, resolution.height);
+            camera.setParameters(parameters);
         }
     };
     private OnItemSelectedListener focusSpinnerListener = new OnItemSelectedListener() {
@@ -75,6 +76,7 @@ public class MainActivity extends Activity implements PictureCallback {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             String focusMode = focusModes.get(position);
+            Camera.Parameters parameters = camera.getParameters();
             parameters.setFocusMode(focusMode);
             camera.setParameters(parameters);
             if (focusMode.equals(Camera.Parameters.FOCUS_MODE_AUTO) ||
@@ -129,6 +131,7 @@ public class MainActivity extends Activity implements PictureCallback {
         }
         currentEv = exposureLevel * exposureCompensationStep;
         captureButton.setText(format(R.string.capturing, currentEv));
+        Camera.Parameters parameters = camera.getParameters();
         parameters.setExposureCompensation(exposureLevel);
         camera.setParameters(parameters);
         camera.takePicture(null, null, MainActivity.this);
@@ -179,10 +182,12 @@ public class MainActivity extends Activity implements PictureCallback {
 
     private void calculateCameraParameters() {
 
+        Camera.Parameters parameters = camera.getParameters();
+        focusModes = parameters.getSupportedFocusModes();
+        exposureCompensationStep = parameters.getExposureCompensationStep();
+
         parameters.setJpegQuality(100);
         parameters.setJpegThumbnailSize(0, 0);
-
-        exposureCompensationStep = parameters.getExposureCompensationStep();
 
         Display display = getWindowManager().getDefaultDisplay();
         float targetAspectRatio = (float) display.getWidth() / display.getHeight();
@@ -212,8 +217,6 @@ public class MainActivity extends Activity implements PictureCallback {
             resolutionDescriptions.add(size.width + " x " + size.height);
         }
 
-        focusModes = parameters.getSupportedFocusModes();
-
         camera.setParameters(parameters);
     }
 
@@ -221,7 +224,6 @@ public class MainActivity extends Activity implements PictureCallback {
         // TODO: This gets the first camera, not necessarily the best.
         // Maybe the app should let the user choose the camera.
         camera = Camera.open(0);
-        parameters = camera.getParameters();
     }
 
     @Override
