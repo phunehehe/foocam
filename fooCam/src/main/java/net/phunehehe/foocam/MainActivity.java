@@ -42,6 +42,7 @@ public class MainActivity extends Activity implements PictureCallback {
     private int midExposureLevel;
     private List<Integer> numberOfStopsList;
     private List<Camera.Size> resolutions;
+    private List<String> focusModes;
     private List<String> resolutionDescriptions;
     private String timestamp;
     private View.OnClickListener captureButtonListener = new View.OnClickListener() {
@@ -54,27 +55,32 @@ public class MainActivity extends Activity implements PictureCallback {
             processQueue();
         }
     };
-    private AdapterView.OnItemSelectedListener resolutionSpinnerListener = new AdapterView.OnItemSelectedListener() {
+    private OnItemSelectedListener numberOfStopsListener = new OnItemSelectedListener() {
+
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            numberOfStops = numberOfStopsList.get(position);
+        }
+    };
+    private OnItemSelectedListener resolutionSpinnerListener = new OnItemSelectedListener() {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             Camera.Size resolution = resolutions.get(position);
             parameters.setPictureSize(resolution.width, resolution.height);
         }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-        }
     };
-    private AdapterView.OnItemSelectedListener numberOfStopsListener = new AdapterView.OnItemSelectedListener() {
+    private OnItemSelectedListener focusSpinnerListener = new OnItemSelectedListener() {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            numberOfStops = numberOfStopsList.get(position);
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
+            String focusMode = focusModes.get(position);
+            parameters.setFocusMode(focusMode);
+            camera.setParameters(parameters);
+            if (focusMode.equals(Camera.Parameters.FOCUS_MODE_AUTO) ||
+                    focusMode.equals(Camera.Parameters.FOCUS_MODE_MACRO)) {
+                camera.autoFocus(null);
+            }
         }
     };
 
@@ -188,13 +194,6 @@ public class MainActivity extends Activity implements PictureCallback {
             }
         }
 
-        resolutions = parameters.getSupportedPictureSizes();
-        // getSupportedPictureSizes will always return a list with at least one element.
-        resolutionDescriptions = new ArrayList<String>(resolutions.size());
-        for (Camera.Size size : resolutions) {
-            resolutionDescriptions.add(size.width + " x " + size.height);
-        }
-
         numberOfStopsList = new LinkedList<Integer>();
         int minStop = parameters.getMinExposureCompensation();
         int maxStop = parameters.getMaxExposureCompensation();
@@ -206,6 +205,14 @@ public class MainActivity extends Activity implements PictureCallback {
                 numberOfStopsList.add(stops);
             }
         }
+
+        resolutions = parameters.getSupportedPictureSizes();
+        resolutionDescriptions = new ArrayList<String>(resolutions.size());
+        for (Camera.Size size : resolutions) {
+            resolutionDescriptions.add(size.width + " x " + size.height);
+        }
+
+        focusModes = parameters.getSupportedFocusModes();
 
         camera.setParameters(parameters);
     }
@@ -244,5 +251,12 @@ public class MainActivity extends Activity implements PictureCallback {
         resolutionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         resolutionSpinner.setAdapter(resolutionAdapter);
         resolutionSpinner.setOnItemSelectedListener(resolutionSpinnerListener);
+
+        Spinner focusModeSpinner = (Spinner) findViewById(R.id.focus_mode_spinner);
+        ArrayAdapter<String> focusModeAdapter = new ArrayAdapter<String>(
+                this, android.R.layout.simple_spinner_item, focusModes);
+        focusModeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        focusModeSpinner.setAdapter(focusModeAdapter);
+        focusModeSpinner.setOnItemSelectedListener(focusSpinnerListener);
     }
 }
