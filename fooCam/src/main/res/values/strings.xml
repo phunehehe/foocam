@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">fooCam</string>
+    <string name="app_name">fooCam beta</string>
     <string name="capture">Go!</string>
     <string name="media_not_mounted">External storage is not available.</string>
     <string name="something_is_wrong">Something is wrong…</string>
