@@ -30,6 +30,7 @@ import java.util.List;
 
 public class MainActivity extends Activity implements PictureCallback {
 
+    private static final String CRITTERCISM_APP_ID = null;
     private Button captureButton;
     private Camera camera;
     private Deque<Integer> exposureLevels;
@@ -228,7 +229,9 @@ public class MainActivity extends Activity implements PictureCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crittercism.initialize(getApplicationContext(), "52556e00e432f52ff3000005");
+        if (CRITTERCISM_APP_ID != null) {
+            Crittercism.initialize(getApplicationContext(), CRITTERCISM_APP_ID);
+        }
 
         setContentView(R.layout.activity_main);
         preview = (FrameLayout) findViewById(R.id.camera_preview);
