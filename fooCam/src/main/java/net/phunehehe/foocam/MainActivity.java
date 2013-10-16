@@ -187,7 +187,6 @@ public class MainActivity extends Activity implements PictureCallback {
         exposureCompensationStep = parameters.getExposureCompensationStep();
 
         parameters.setJpegQuality(100);
-        parameters.setJpegThumbnailSize(0, 0);
 
         Display display = getWindowManager().getDefaultDisplay();
         float targetAspectRatio = (float) display.getWidth() / display.getHeight();
