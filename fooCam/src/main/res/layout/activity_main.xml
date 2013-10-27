@@ -15,21 +15,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:background="#cc000000" />
 
     <Spinner
         android:id="@+id/resolution_spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true" />
+        android:layout_centerVertical="true"
+        android:background="#cc000000" />
 
     <Spinner
         android:id="@+id/focus_mode_spinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:background="#cc000000" />
 
     <Button
         android:id="@+id/capture_button"
@@ -37,6 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
+        android:background="#cc000000"
         android:text="@string/capture" />
 
 </RelativeLayout>
