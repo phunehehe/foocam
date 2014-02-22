@@ -16,7 +16,7 @@ import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.crittercism.app.Crittercism;
+import com.joshdholtz.sentry.Sentry;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,7 +30,6 @@ import java.util.List;
 
 public class MainActivity extends Activity implements PictureCallback {
 
-    private static final String CRITTERCISM_APP_ID = null;
     private Button captureButton;
     private Camera camera;
     private Deque<Integer> exposureLevels;
@@ -229,9 +228,9 @@ public class MainActivity extends Activity implements PictureCallback {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (CRITTERCISM_APP_ID != null) {
-            Crittercism.initialize(getApplicationContext(), CRITTERCISM_APP_ID);
-        }
+
+        // Sentry will look for uncaught exceptions from previous runs and send them
+        Sentry.init(this, "https://6fed2ef75f5b4a3d839a2ea9c25c6c27:e5074392a02748c88cf23b97b8fbe036@app.getsentry.com/19878");
 
         setContentView(R.layout.activity_main);
         preview = (FrameLayout) findViewById(R.id.camera_preview);

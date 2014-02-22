@@ -40,5 +40,6 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:18.+'
-    compile files('lib/crittercism_v4_0_2_sdkonly.jar')
+    compile files('lib/protocol-1.0.4.jar')
+    compile files('lib/sentry-0.1.4.jar')
 }
