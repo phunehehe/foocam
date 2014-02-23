@@ -1,10 +1,9 @@
 package net.phunehehe.foocam;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
-import android.net.Uri;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.Display;
@@ -145,7 +144,7 @@ public class MainActivity extends Activity implements PictureCallback {
             FileOutputStream fos = new FileOutputStream(pictureFile);
             fos.write(data);
             fos.close();
-            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.fromFile(pictureFile)));
+            MediaScannerConnection.scanFile(this, new String[]{pictureFile.toString()}, null, null);
         } catch (IOException e) {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
