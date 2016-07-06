@@ -6,6 +6,7 @@ import android.hardware.Camera.PictureCallback;
 import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.view.Display;
 import android.view.View;
 import android.widget.AdapterView;
@@ -133,6 +134,11 @@ public class MainActivity extends Activity implements PictureCallback {
         Camera.Parameters parameters = camera.getParameters();
         parameters.setExposureCompensation(exposureLevel);
         camera.setParameters(parameters);
+
+        // This ugly sleep is needed to wait for the new parameters to take
+        // effect. On a Xiaomi Mi 4 129ms seems to be the magic number.
+        SystemClock.sleep(150);
+
         camera.takePicture(null, null, MainActivity.this);
         return true;
     }
