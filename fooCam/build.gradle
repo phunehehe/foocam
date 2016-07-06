@@ -1,16 +1,13 @@
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.1.2'
     }
 }
-apply plugin: 'com.android.application'
 
-repositories {
-    mavenCentral()
-}
+apply plugin: 'com.android.application'
 
 android {
 
@@ -24,8 +21,11 @@ android {
     }
 }
 
+repositories {
+    jcenter()
+}
+
 dependencies {
     compile 'com.android.support:support-v4:24.0.0'
-    compile files('lib/protocol-1.0.4.jar')
-    compile files('lib/sentry-0.1.4.jar')
+    compile 'com.joshdholtz.sentry:sentry-android:1.4.0'
 }
