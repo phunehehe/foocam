@@ -1,5 +1,6 @@
 package net.phunehehe.foocam;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.hardware.Camera;
 import android.view.SurfaceHolder;
@@ -9,18 +10,17 @@ import android.widget.Toast;
 import java.io.IOException;
 
 
+@SuppressLint("ViewConstructor")
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
-    private SurfaceHolder surfaceHolder;
-    private Camera camera;
+    private final SurfaceHolder surfaceHolder;
+    private final Camera camera;
 
     public CameraPreview(Context context, Camera camera) {
         super(context);
         this.camera = camera;
         surfaceHolder = getHolder();
         surfaceHolder.addCallback(this);
-        // Deprecated, but required on Android versions prior to 3.0
-        surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
     public void surfaceCreated(SurfaceHolder holder) {

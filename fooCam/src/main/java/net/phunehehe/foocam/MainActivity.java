@@ -1,13 +1,13 @@
 package net.phunehehe.foocam;
 
 import android.app.Activity;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
-import android.view.Display;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends Activity implements PictureCallback {
 
@@ -40,28 +41,15 @@ public class MainActivity extends Activity implements PictureCallback {
     private int totalStops;
     private int midExposureLevel;
     private List<Integer> numberOfStopsList;
-    private List<Camera.Size> resolutions;
-    private List<String> focusModes;
-    private List<String> resolutionDescriptions;
-    private String timestamp;
-    private View.OnClickListener captureButtonListener = new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            captureButton.setClickable(false);
-            timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_").format(new Date());
-            calculateExposureLevels(numberOfStops);
-            processQueue();
-        }
-    };
-    private OnItemSelectedListener numberOfStopsListener = new OnItemSelectedListener() {
+    private final OnItemSelectedListener numberOfStopsListener = new OnItemSelectedListener() {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             numberOfStops = numberOfStopsList.get(position);
         }
     };
-    private OnItemSelectedListener resolutionSpinnerListener = new OnItemSelectedListener() {
+    private List<Camera.Size> resolutions;
+    private final OnItemSelectedListener resolutionSpinnerListener = new OnItemSelectedListener() {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -71,7 +59,8 @@ public class MainActivity extends Activity implements PictureCallback {
             camera.setParameters(parameters);
         }
     };
-    private OnItemSelectedListener focusSpinnerListener = new OnItemSelectedListener() {
+    private List<String> focusModes;
+    private final OnItemSelectedListener focusSpinnerListener = new OnItemSelectedListener() {
 
         @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -85,11 +74,23 @@ public class MainActivity extends Activity implements PictureCallback {
             }
         }
     };
+    private List<String> resolutionDescriptions;
+    private String timestamp;
+    private final View.OnClickListener captureButtonListener = new View.OnClickListener() {
+
+        @Override
+        public void onClick(View v) {
+            captureButton.setClickable(false);
+            timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_", Locale.US).format(new Date());
+            calculateExposureLevels(numberOfStops);
+            processQueue();
+        }
+    };
 
     private void calculateExposureLevels(int stops) {
         // Minus one for the 0
         int step = (totalStops - 1) / (stops - 1);
-        exposureLevels = new LinkedList<Integer>();
+        exposureLevels = new LinkedList<>();
         exposureLevels.addLast(midExposureLevel);
         for (int offset = step; exposureLevels.size() < stops; offset += step) {
             exposureLevels.addFirst(midExposureLevel - offset);
@@ -117,7 +118,7 @@ public class MainActivity extends Activity implements PictureCallback {
         }
 
         // Create a media file name
-        return new File(String.format("%s%s%s%.1f.jpg", mediaStorageDir.getPath(), File.separator, timestamp, ev));
+        return new File(String.format(Locale.US, "%s%s%s%.1f.jpg", mediaStorageDir.getPath(), File.separator, timestamp, ev));
     }
 
     private String format(int resId, Object... args) {
@@ -193,8 +194,9 @@ public class MainActivity extends Activity implements PictureCallback {
 
         parameters.setJpegQuality(100);
 
-        Display display = getWindowManager().getDefaultDisplay();
-        float targetAspectRatio = (float) display.getWidth() / display.getHeight();
+        Point displaySize = new Point();
+        getWindowManager().getDefaultDisplay().getSize(displaySize);
+        float targetAspectRatio = (float) displaySize.x / displaySize.y;
         for (Camera.Size size : parameters.getSupportedPreviewSizes()) {
             float aspectRatio = (float) size.width / size.height;
             if (Math.abs(aspectRatio - targetAspectRatio) < 0.1) {
@@ -203,7 +205,7 @@ public class MainActivity extends Activity implements PictureCallback {
             }
         }
 
-        numberOfStopsList = new LinkedList<Integer>();
+        numberOfStopsList = new LinkedList<>();
         int minStop = parameters.getMinExposureCompensation();
         int maxStop = parameters.getMaxExposureCompensation();
         midExposureLevel = (maxStop + minStop) / 2;
@@ -216,7 +218,7 @@ public class MainActivity extends Activity implements PictureCallback {
         }
 
         resolutions = parameters.getSupportedPictureSizes();
-        resolutionDescriptions = new ArrayList<String>(resolutions.size());
+        resolutionDescriptions = new ArrayList<>(resolutions.size());
         for (Camera.Size size : resolutions) {
             resolutionDescriptions.add(size.width + " x " + size.height);
         }
@@ -247,21 +249,21 @@ public class MainActivity extends Activity implements PictureCallback {
         calculateCameraParameters();
 
         Spinner numberOfStopsSpinner = (Spinner) findViewById(R.id.number_of_stops_spinner);
-        ArrayAdapter<Integer> numberOfStopsAdapter = new ArrayAdapter<Integer>(
+        ArrayAdapter<Integer> numberOfStopsAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, numberOfStopsList);
         numberOfStopsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         numberOfStopsSpinner.setAdapter(numberOfStopsAdapter);
         numberOfStopsSpinner.setOnItemSelectedListener(numberOfStopsListener);
 
         Spinner resolutionSpinner = (Spinner) findViewById(R.id.resolution_spinner);
-        ArrayAdapter<String> resolutionAdapter = new ArrayAdapter<String>(
+        ArrayAdapter<String> resolutionAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, resolutionDescriptions);
         resolutionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         resolutionSpinner.setAdapter(resolutionAdapter);
         resolutionSpinner.setOnItemSelectedListener(resolutionSpinnerListener);
 
         Spinner focusModeSpinner = (Spinner) findViewById(R.id.focus_mode_spinner);
-        ArrayAdapter<String> focusModeAdapter = new ArrayAdapter<String>(
+        ArrayAdapter<String> focusModeAdapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, focusModes);
         focusModeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         focusModeSpinner.setAdapter(focusModeAdapter);
