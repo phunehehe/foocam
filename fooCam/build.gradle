@@ -3,10 +3,10 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.+'
+        classpath 'com.android.tools.build:gradle:2.1.2'
     }
 }
-apply plugin: 'android'
+apply plugin: 'com.android.application'
 
 repositories {
     mavenCentral()
@@ -14,33 +14,18 @@ repositories {
 
 android {
 
-    compileSdkVersion 18
-    buildToolsVersion "18.1.1"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.0"
 
     defaultConfig {
-        packageName "net.phunehehe.foocam2"
-        minSdkVersion 10
-        targetSdkVersion 18
-    }
-
-    signingConfigs {
-        release {
-            storeFile file(System.getenv("KEYSTORE"))
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
-        }
-    }
-
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release
-        }
+        applicationId "net.phunehehe.foocam2"
+        minSdkVersion 16
+        targetSdkVersion 24
     }
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:18.+'
+    compile 'com.android.support:support-v4:24.0.0'
     compile files('lib/protocol-1.0.4.jar')
     compile files('lib/sentry-0.1.4.jar')
 }
