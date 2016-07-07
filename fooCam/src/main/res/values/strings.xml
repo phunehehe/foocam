@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">fooCam beta</string>
+    <string name="app_name">fooCam</string>
     <string name="capture">Go!</string>
     <string name="media_not_mounted">External storage is not available.</string>
     <string name="something_is_wrong">Something is wrong…</string>
     <string name="cannot_create_dir">Could not create directory %s.</string>
-    <string name="capturing">Capturing %.1f</string>
+    <string name="capturing">Capturing %.1f…</string>
 </resources>
