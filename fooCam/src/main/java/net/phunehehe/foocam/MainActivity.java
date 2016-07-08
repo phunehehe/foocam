@@ -1,6 +1,8 @@
 package net.phunehehe.foocam;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
@@ -8,6 +10,8 @@ import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -232,6 +236,26 @@ public class MainActivity extends Activity implements PictureCallback {
         camera = Camera.open(0);
     }
 
+    private boolean checkSelfPermissions(String[] permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void requestPermissions() {
+        String[] permissions = new String[]{
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        };
+        while (!checkSelfPermissions(permissions)) {
+            ActivityCompat.requestPermissions(this, permissions, 0);
+            SystemClock.sleep(100);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -245,6 +269,7 @@ public class MainActivity extends Activity implements PictureCallback {
         captureButton = (Button) findViewById(R.id.capture_button);
         captureButton.setOnClickListener(captureButtonListener);
 
+        requestPermissions();
         initializeCamera();
         calculateCameraParameters();
 

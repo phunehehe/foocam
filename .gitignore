@@ -1,9 +1,7 @@
-*.swp
+*.iml
 /.gradle
 /fooCam/build
 /local.properties
-/set-env.sh
-foocam.keystore
 
 
 # Copied from https://github.com/github/gitignore/blob/master/Gradle.gitignore<Paste>
