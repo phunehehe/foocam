@@ -228,12 +228,34 @@ public class MainActivity extends Activity implements PictureCallback {
         }
 
         camera.setParameters(parameters);
+
+        Spinner numberOfStopsSpinner = (Spinner) findViewById(R.id.number_of_stops_spinner);
+        ArrayAdapter<Integer> numberOfStopsAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, numberOfStopsList);
+        numberOfStopsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        numberOfStopsSpinner.setAdapter(numberOfStopsAdapter);
+        numberOfStopsSpinner.setOnItemSelectedListener(numberOfStopsListener);
+
+        Spinner resolutionSpinner = (Spinner) findViewById(R.id.resolution_spinner);
+        ArrayAdapter<String> resolutionAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, resolutionDescriptions);
+        resolutionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        resolutionSpinner.setAdapter(resolutionAdapter);
+        resolutionSpinner.setOnItemSelectedListener(resolutionSpinnerListener);
+
+        Spinner focusModeSpinner = (Spinner) findViewById(R.id.focus_mode_spinner);
+        ArrayAdapter<String> focusModeAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, focusModes);
+        focusModeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        focusModeSpinner.setAdapter(focusModeAdapter);
+        focusModeSpinner.setOnItemSelectedListener(focusSpinnerListener);
     }
 
     private void initializeCamera() {
         // TODO: This gets the first camera, not necessarily the best.
         // Maybe the app should let the user choose the camera.
         camera = Camera.open(0);
+        calculateCameraParameters();
     }
 
     private boolean checkSelfPermissions(String[] permissions) {
@@ -271,27 +293,5 @@ public class MainActivity extends Activity implements PictureCallback {
 
         requestPermissions();
         initializeCamera();
-        calculateCameraParameters();
-
-        Spinner numberOfStopsSpinner = (Spinner) findViewById(R.id.number_of_stops_spinner);
-        ArrayAdapter<Integer> numberOfStopsAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, numberOfStopsList);
-        numberOfStopsAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        numberOfStopsSpinner.setAdapter(numberOfStopsAdapter);
-        numberOfStopsSpinner.setOnItemSelectedListener(numberOfStopsListener);
-
-        Spinner resolutionSpinner = (Spinner) findViewById(R.id.resolution_spinner);
-        ArrayAdapter<String> resolutionAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, resolutionDescriptions);
-        resolutionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        resolutionSpinner.setAdapter(resolutionAdapter);
-        resolutionSpinner.setOnItemSelectedListener(resolutionSpinnerListener);
-
-        Spinner focusModeSpinner = (Spinner) findViewById(R.id.focus_mode_spinner);
-        ArrayAdapter<String> focusModeAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, focusModes);
-        focusModeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        focusModeSpinner.setAdapter(focusModeAdapter);
-        focusModeSpinner.setOnItemSelectedListener(focusSpinnerListener);
     }
 }
