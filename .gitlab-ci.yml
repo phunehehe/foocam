@@ -1,0 +1,3 @@
+image: phunehehe/android-ci
+build:
+  script: ./gradlew build
