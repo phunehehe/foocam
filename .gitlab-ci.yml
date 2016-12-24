@@ -1,3 +1,6 @@
 image: phunehehe/android-ci
 build:
   script: ./gradlew build
+  artifacts:
+    paths:
+      - ./*/build/outputs/apk/*-release-*.apk
