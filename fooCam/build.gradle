@@ -3,7 +3,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.2'
+        classpath 'com.android.tools.build:gradle:2.2.3'
     }
 }
 
@@ -11,13 +11,13 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 24
-    buildToolsVersion "24.0.1"
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         applicationId "net.phunehehe.foocam2"
         minSdkVersion 16
-        targetSdkVersion 24
+        targetSdkVersion 25
     }
 }
 
@@ -26,6 +26,6 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:24.0.0'
-    compile 'com.joshdholtz.sentry:sentry-android:1.4.0'
+    compile 'com.android.support:support-v4:25.1.0'
+    compile 'com.joshdholtz.sentry:sentry-android:1.5.2'
 }
