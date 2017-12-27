@@ -1,5 +1,6 @@
-fooCam
-======
+# fooCam
+
+[![pipeline status](https://gitlab.com/phunehehe/foocam/badges/master/pipeline.svg)](https://gitlab.com/phunehehe/foocam/commits/master)
 
 fooCam takes multiple successive shots with different exposure settings. The
 resulting images can be post-processed using image editors such as Luminance
